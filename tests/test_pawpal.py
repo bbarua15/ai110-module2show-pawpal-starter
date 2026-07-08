@@ -132,3 +132,39 @@ def test_find_conflicts_ignores_adjacent_and_flexible_tasks():
     conflicts = scheduler.find_conflicts(owner.get_all_tasks())
 
     assert len(conflicts) == 0
+
+
+def test_sort_by_time_returns_chronological_order():
+    """sort_by_time() should return tasks ordered from shortest to longest duration."""
+    tasks = [
+        Task(description="Play fetch", duration_minutes=30),
+        Task(description="Give medication", duration_minutes=5),
+        Task(description="Morning walk", duration_minutes=20),
+    ]
+
+    scheduler = Scheduler(available_minutes=60)
+    ordered = scheduler.sort_by_time(tasks)
+
+    durations = [task.duration_minutes for task in ordered]
+    assert durations == [5, 20, 30]
+
+
+def test_check_conflicts_lightweight_flags_duplicate_times():
+    """check_conflicts_lightweight() should warn when two tasks share the exact same start_time."""
+    from datetime import time
+
+    mochi = Pet(name="Mochi", species="dog")
+    whiskers = Pet(name="Whiskers", species="cat")
+
+    mochi.add_task(Task(description="Morning walk", duration_minutes=20, start_time=time(8, 0)))
+    whiskers.add_task(Task(description="Feed breakfast", duration_minutes=10, start_time=time(8, 0)))
+
+    owner = Owner(name="Jordan")
+    owner.add_pet(mochi)
+    owner.add_pet(whiskers)
+
+    scheduler = Scheduler(available_minutes=60)
+    warning = scheduler.check_conflicts_lightweight(owner.get_all_tasks())
+
+    assert warning is not None
+    assert "8" in warning  # sanity check that the warning mentions the shared hour
