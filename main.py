@@ -6,6 +6,8 @@ correctly together BEFORE wiring anything into the Streamlit UI
 (app.py). This is the "CLI-first" step in the workflow.
 """
 
+from datetime import time
+
 from pawpal_system import Task, Pet, Owner, Scheduler
 
 
@@ -24,10 +26,10 @@ def main():
     # priority), to make sure sort_by_time() actually does something
     # rather than happening to match input order by coincidence.
     mochi.add_task(Task("Play fetch", duration_minutes=30, priority="low", frequency="once"))
-    mochi.add_task(Task("Morning walk", duration_minutes=20, priority="high"))
+    mochi.add_task(Task("Morning walk", duration_minutes=20, priority="high", start_time=time(8, 0)))
     whiskers.add_task(Task("Clean litter box", duration_minutes=15, priority="medium"))
     mochi.add_task(Task("Give medication", duration_minutes=5, priority="high"))  # frequency="daily" (default)
-    whiskers.add_task(Task("Feed breakfast", duration_minutes=10, priority="high"))
+    whiskers.add_task(Task("Feed breakfast", duration_minutes=10, priority="high", start_time=time(8, 0)))
 
     # Mark one non-recurring task complete so the completion filter has
     # something to exclude, without it spawning a recurrence.
@@ -82,6 +84,20 @@ def main():
         print(f"  [{pet.name}] {task.description}")
 
     # ------------------------------------------------------------------
+    # Demonstrate conflict detection
+    # "Morning walk" (Mochi) and "Feed breakfast" (Whiskers) are both
+    # scheduled at 8:00 AM -- this should be flagged by both the full
+    # window-overlap check and the lightweight same-time-bucket check.
+    # ------------------------------------------------------------------
+    print("\n=== Conflict check: find_conflicts() (full time-window overlap) ===")
+    conflicts = scheduler.find_conflicts(all_tasks)
+    print(scheduler.explain_conflicts(conflicts))
+
+    print("\n=== Conflict check: check_conflicts_lightweight() (fast, crash-safe) ===")
+    warning = scheduler.check_conflicts_lightweight(all_tasks)
+    print(warning if warning else "No conflicts detected.")
+
+    # ------------------------------------------------------------------
     # Build and print today's schedule (unaffected by the above; uses
     # its own internal priority+duration sort and pending-task filter)
     # ------------------------------------------------------------------
@@ -92,5 +108,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    

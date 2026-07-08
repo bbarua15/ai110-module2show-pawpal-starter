@@ -159,6 +159,40 @@ class Scheduler:
         """Return the given Task objects sorted by duration (shortest first)."""
         return sorted(tasks, key=lambda task: task.duration_minutes)
 
+    def check_conflicts_lightweight(self, tasks: List[Tuple[Pet, Task]]) -> Optional[str]:
+        """
+        Fast, crash-safe conflict check: groups tasks by exact start_time
+        (O(n), not O(n^2)) and returns a warning string if any two tasks
+        share a start time, or None if no conflicts are found.
+
+        This is a lighter alternative to find_conflicts()/_windows_overlap():
+        it only catches same-instant collisions, not partial time-window
+        overlaps, but it's cheaper and defensively never raises -- any bad
+        or missing data is reported as a warning instead of crashing the
+        scheduling flow.
+        """
+        try:
+            buckets: dict = {}
+            for pet, task in tasks:
+                start = getattr(task, "start_time", None)
+                if start is None:
+                    continue  # flexible tasks can't conflict
+                buckets.setdefault(start, []).append((pet, task))
+
+            warnings = []
+            for start, entries in buckets.items():
+                if len(entries) > 1:
+                    names = ", ".join(f"[{pet.name}] {task.description}" for pet, task in entries)
+                    warnings.append(f"{len(entries)} tasks scheduled at {start}: {names}")
+
+            if not warnings:
+                return None
+            return "Warning - possible scheduling conflicts:\n  " + "\n  ".join(warnings)
+
+        except Exception as exc:
+            # Never let a conflict check crash the app -- degrade to a warning.
+            return f"Warning - could not fully check for conflicts ({exc})."
+
     def find_conflicts(
         self, tasks: List[Tuple[Pet, Task]]
     ) -> List[Tuple[Tuple[Pet, Task], Tuple[Pet, Task]]]:

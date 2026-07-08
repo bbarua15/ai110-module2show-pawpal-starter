@@ -88,10 +88,42 @@ designing for hypothetical future features up front.
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+**a. Constraints**
+
+My scheduler considers three constraints: **available time** (tasks must
+fit within a set time budget), **priority** (high tasks are scheduled
+before medium and low), and **completion status** (finished tasks are
+excluded). Duration is used as a tiebreaker between tasks of equal
+priority, favoring shorter tasks first so more high-priority tasks fit.
+
+I decided time and priority mattered most because they directly answer
+the app's main question: what should the owner do today with limited
+time? Everything else — like detecting scheduling conflicts or tracking
+due dates — came later, as extra checks layered on top rather than
+constraints the scheduler enforces directly. Owner preferences were left
+out entirely, since none of the core actions actually needed them.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+**b. Tradeoffs**
+
+My two conflict-detection methods trade accuracy for speed. `find_conflicts()`
+checks real time-window overlaps (e.g., catches an 8:00–8:20 walk clashing
+with an 8:10–8:30 feeding), but compares every pair of tasks, making it
+O(n²) — fine for a household's daily tasks, but not scalable to hundreds
+of tasks. `check_conflicts_lightweight()` only flags tasks sharing the
+*exact same* start time, using a faster O(n) pass — it would completely
+miss the 8:00/8:10 example above. In exchange, it's wrapped in a
+try/except so it degrades to a warning instead of crashing on bad data.
+
+I kept both because they serve different purposes: the lightweight check
+is safe to call defensively before rendering the UI, while the full check
+suits a deliberate "verify my schedule" action where accuracy matters
+more than speed. The accepted risk: a user relying only on the
+lightweight check could have a real, undetected overlap.
 
 ---
 

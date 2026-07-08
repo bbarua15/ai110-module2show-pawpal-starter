@@ -90,6 +90,20 @@ Sample test output:
 | Conflict handling | | e.g., overlapping time slots |
 | Recurring tasks | | e.g., daily vs. weekly |
 
+
+## 🧠 Smarter Scheduling
+
+- **Sorting** — `Scheduler.sort_by_time()` sorts tasks by duration; 
+  `build_plan()` internally sorts by priority, then duration.
+- **Filtering** — `Scheduler.filter_tasks()` filters tasks by completion
+  status, pet name, or both.
+- **Conflict detection** — `Scheduler.find_conflicts()` catches
+  overlapping task times; `Scheduler.check_conflicts_lightweight()` is a
+  faster version that warns instead of crashing on bad data.
+- **Recurring tasks** — `Task.create_next_occurrence()` generates the
+  next daily/weekly task automatically when `Scheduler.complete_task()`
+  marks one done.
+
 ## 📸 Demo Walkthrough
 
 Describe your app in numbered steps so a reader can follow along without watching a video:
