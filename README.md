@@ -53,6 +53,15 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 #   09:00 — Feeding (10 min) [priority: high]
 #   ...
 ```
+=== Today's Schedule ===
+Today's plan:
+  1. [Mochi] Give medication (5 min, high priority)
+  2. [Whiskers] Feed breakfast (10 min, high priority)
+  3. [Mochi] Morning walk (20 min, high priority)
+
+Scheduled 3 task(s) using 35 of 45 available minutes.
+Tasks were chosen by priority first (high before medium before low), then by shortest duration, to fit as many important tasks as possible into the available time.
+
 
 ## 🧪 Testing PawPal+
 
